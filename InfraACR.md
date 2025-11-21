@@ -1,14 +1,15 @@
+#!/bin/bash
+set -euo pipefail
+
 ###
 ### Variáveis
 ###
 grupoRecursos=timewise-rg
-# Altere a Região conforme orientação do Prof
+# Altere a Região conforme orientação do Professor
 regiao=eastus
-#Outras opções:
-#brazilsouth
-#eastus2
-#westus
-#westus2
+# Outras opções recomendadas:
+# brazilsouth | eastus2 | westus | westus2
+
 # Altere para seu RM
 rm=rm555276
 nomeACR="acr$rm"
@@ -21,7 +22,6 @@ skuACR=Basic
 if [ $(az group exists --name $grupoRecursos) = true ]; then
     echo "O grupo de recursos $grupoRecursos já existe"
 else
-    # Cria o grupo de recursos
     az group create --name $grupoRecursos --location $regiao
     echo "Grupo de recursos $grupoRecursos criado na localização $regiao"
 fi
@@ -29,31 +29,24 @@ fi
 ###
 ### Criação do Azure Container Registry
 ###
-# Verifica se o ACR já existe
 if az acr show --name $nomeACR --resource-group $grupoRecursos &> /dev/null; then
     echo "O ACR $nomeACR já existe"
 else
-    # Cria o ACR
     az acr create --resource-group $grupoRecursos --name $nomeACR --sku $skuACR
     echo "ACR $nomeACR criado com sucesso"
-    # Habilita o Usuário Administrador no Azure Container Registry
+
     az acr update --name $nomeACR --resource-group $grupoRecursos --admin-enabled true
     echo "Habilitado com sucesso o usuário Administrador para o ACR $nomeACR"
 fi
 
-#
-# Essa parte do Script só é recomendada para fins de testes e aprendizado
-#
-# WARNING: [Warning] This output may compromise security by showing secrets. Learn more at: https://go.microsoft.com/fwlink/?linkid=2258669
-#
-# Recuperar as credenciais do usuário administrador, armazenar em variáveis de ambiente e mostrar as credenciais
+###
+### Exibir credenciais do Admin do ACR (somente para testes e aprendizado)
+###
 ADMIN_USER=$(az acr credential show --name $nomeACR --query "username" -o tsv)
 ADMIN_PASSWORD=$(az acr credential show --name $nomeACR --query "passwords[0].value" -o tsv)
 
-# Cria variáveis de ambiente
 export ACR_ADMIN_USER=$ADMIN_USER
 export ACR_ADMIN_PASSWORD=$ADMIN_PASSWORD
 
-# Mostra as variáveis de ambiente
-echo $ACR_ADMIN_USER
-echo $ACR_ADMIN_PASSWORD
+echo "Usuário Admin do ACR: $ACR_ADMIN_USER"
+echo "Senha Admin do ACR: $ACR_ADMIN_PASSWORD"
