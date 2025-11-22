@@ -4,14 +4,14 @@ Este diagrama mostra a arquitetura completa do projeto **TimeWise**, que utiliza
 
 ```mermaid
 graph TD
-    A[Usuário Final / Navegador] -->|Acessa aplicação via URL| B[Azure Container Instance (ACI)]
+    A[Usuario Final / Navegador] -->|Acessa aplicacao via URL| B[Azure Container Instance (ACI)]
     B -->|Executa imagem Docker| C[Azure Container Registry (ACR)]
     C -->|Pipeline de Build - Push da imagem| D[Azure DevOps - Pipeline de Build]
-    D -->|Código-fonte e YAML| E[Azure Repos]
+    D -->|Codigo-fonte e YAML| E[Azure Repos]
     D -->|Publica artefato + executa testes| C
     D -->|Dispara Release| F[Azure DevOps - Pipeline de Release]
-    F -->|Deploy automático| B
-    B -->|Conexão JDBC| G[Azure Database for PostgreSQL]
+    F -->|Deploy automatico| B
+    B -->|Conexao JDBC| G[Azure Database for PostgreSQL]
 
     subgraph CI/CD
         D
@@ -28,6 +28,7 @@ graph TD
     classDef devops fill:#FF8C00,stroke:#B87333,color:#fff;
     class C,B,G azure;
     class D,F devops;
+
 ```
 
 ---
