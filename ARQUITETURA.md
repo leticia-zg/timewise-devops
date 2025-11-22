@@ -1,51 +1,33 @@
-# ☁️ Arquitetura do TimeWise no Azure
+# 🏗 Arquitetura do Projeto TimeWise
 
-Este diagrama mostra a arquitetura completa do projeto **TimeWise**, que utiliza **Azure DevOps**, **ACR (Azure Container Registry)**, **ACI (Azure Container Instance)** e **Azure Database for PostgreSQL** para entrega contínua e execução em nuvem.
+Este diagrama mostra a arquitetura completa do **TimeWise**, que utiliza **Azure DevOps (Build e Release Pipelines)**, **Azure Container Registry (ACR)**, **Azure Container Instance (ACI)** e **Azure Database for PostgreSQL**, garantindo integração contínua e deploy automatizado em nuvem.
 
 ```mermaid
-graph TD
-    A[Usuario Final / Navegador] -->|Acessa aplicacao via URL| B[Azure Container Instance (ACI)]
-    B -->|Executa imagem Docker| C[Azure Container Registry (ACR)]
-    C -->|Pipeline de Build - Push da imagem| D[Azure DevOps - Pipeline de Build]
-    D -->|Codigo-fonte e YAML| E[Azure Repos]
-    D -->|Publica artefato + executa testes| C
-    D -->|Dispara Release| F[Azure DevOps - Pipeline de Release]
-    F -->|Deploy automatico| B
-    B -->|Conexao JDBC| G[Azure Database for PostgreSQL]
+flowchart LR
 
-    subgraph CI/CD
-        D
-        F
-    end
+USER((Usuário Final))
+DEV((Desenvolvedor))
 
-    subgraph Infraestrutura Azure
-        C
-        B
-        G
-    end
+subgraph "Azure DevOps CI/CD"
+  CI[1️⃣ Build Pipeline - Maven + Docker Push]
+  CD[2️⃣ Release Pipeline - Deploy Automático no ACI]
+end
 
-    classDef azure fill:#007FFF,stroke:#004080,color:#fff;
-    classDef devops fill:#FF8C00,stroke:#B87333,color:#fff;
-    class C,B,G azure;
-    class D,F devops;
+subgraph "Azure Cloud - timewise-rg"
+  ACR[(ACR - acrrm555276)]
+  ACI[(ACI - acirm555276)]
+  DB[(PostgreSQL Flexible Server - pg-rm555276)]
+end
 
-```
+%% --- FLUXO DEVOPS ---
+DEV -->|Commit & Push| CI
+CI -->|Cria e envia imagem Docker| ACR
+CD -->|Faz deploy da imagem| ACI
 
----
+%% --- EXECUÇÃO EM PRODUÇÃO ---
+USER -->|Acessa API via HTTP| ACI
+ACI -->|Conexão JDBC| DB
 
-### 🧩 Descrição dos Componentes
-- **Usuário Final:** Acessa a API hospedada no ACI por meio de uma URL pública.
-- **Azure DevOps - Build:** Compila o código, executa os testes e envia a imagem Docker para o ACR.
-- **Azure DevOps - Release:** Realiza o deploy automático no ACI, utilizando a imagem mais recente.
-- **Azure Container Registry (ACR):** Armazena as imagens Docker versionadas.
-- **Azure Container Instance (ACI):** Executa a aplicação Java Spring Boot em container.
-- **Azure Database for PostgreSQL:** Banco de dados PaaS para persistência dos dados da aplicação.
-
----
-
-📘 **Fluxo Completo:**
-1. O desenvolvedor faz o commit no Azure Repos.
-2. A pipeline de **Build** é disparada, gerando a imagem e enviando ao **ACR**.
-3. A pipeline de **Release** realiza o deploy da imagem no **ACI**.
-4. A aplicação no **ACI** se conecta ao **PostgreSQL**.
-5. O **usuário final** acessa a API via URL pública gerada pelo ACI.
+%% --- RELACIONAMENTO DE COMPONENTES ---
+CI -->|Dispara Release| CD
+ACR <--> ACI
